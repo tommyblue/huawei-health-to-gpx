@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eu
+
+cd "$(dirname "${0}")/.."
+
+go get github.com/mattn/go-sqlite3

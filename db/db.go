@@ -1,10 +1,10 @@
 package db
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 
 	ghht "github.com/tommyblue/go-huawei-health-tcx"
 
@@ -32,27 +32,48 @@ func (db *DB) Close() {
 	db.db.Close()
 }
 
-func (db *DB) GetFiles() {
-	query := `SELECT file_index, file_path FROM apk_file_info WHERE file_path LIKE '%HiTrack%';`
+func (db *DB) GetTracks() []string {
+	var acc []string
+	for _, id := range db.getFiles() {
+		acc = append(acc, db.getTrack(id))
+	}
+	return acc
+}
+
+func (db *DB) getFiles() []int {
+	query := `SELECT file_index FROM apk_file_info WHERE file_path LIKE '%HiTrack%';`
+
+	var acc []int
 
 	callback := func(scanFn scannerFn) {
 		var fileIndex int
-		var filePath string
-		err := scanFn(&fileIndex, &filePath)
+		err := scanFn(&fileIndex)
 		if err != nil {
 			log.Fatal(err)
 		}
-		paths := strings.Split(filePath, "/")
-		fmt.Println(fileIndex, paths[len(paths)-1])
+		acc = append(acc, fileIndex)
 	}
 
 	db.makeQuery(query, callback)
 
+	return acc
 }
 
-func (db *DB) GetTrack() {
-	// q2 := `SELECT file_data FROM apk_file_data WHERE file_index=11 ORDER BY data_index;`
+func (db *DB) getTrack(id int) string {
+	query := fmt.Sprintf(`SELECT file_data FROM apk_file_data WHERE file_index=%d ORDER BY data_index;`, id)
 	// lines to be joined. If doesn't end with ; is interrupted?
+	var b bytes.Buffer
+	callback := func(scanFn scannerFn) {
+		var fileData string
+		err := scanFn(&fileData)
+		if err != nil {
+			log.Fatal(err)
+		}
+		b.WriteString(fileData)
+	}
+
+	db.makeQuery(query, callback)
+	return b.String()
 }
 
 func (db *DB) makeQuery(query string, callback callbackFn) {

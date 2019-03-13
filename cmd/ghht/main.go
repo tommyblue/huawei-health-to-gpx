@@ -12,5 +12,5 @@ func main() {
 	database := db.GetDb(conf)
 	defer database.Close()
 
-	db.GetFiles(database)
+	database.GetFiles()
 }

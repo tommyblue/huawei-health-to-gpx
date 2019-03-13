@@ -1,8 +1,12 @@
-package main
+package ghht
 
-func main() {
-	db := getDb()
-	defer db.Close()
+type GHHT struct {
+	DbPath string
+}
 
-	getFiles(db)
+func Init(db_path string) *GHHT {
+	mainConf := &GHHT{
+		DbPath: db_path,
+	}
+	return mainConf
 }

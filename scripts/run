@@ -4,4 +4,8 @@ set -eu
 
 cd "$(dirname "${0}")/.."
 
-go run *.go
+if [ $# -lt 1 ]; then
+    echo -e "Missing db path argument"
+    exit 1
+fi
+go run cmd/ghht/main.go "$@"

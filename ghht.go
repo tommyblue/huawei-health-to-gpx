@@ -1,12 +1,24 @@
 package ghht
 
+import (
+	"log"
+	"strconv"
+)
+
 type GHHT struct {
-	DbPath string
+	DbPath    string
+	FileIndex int
 }
 
-func Init(db_path string) *GHHT {
+func Init(dbPath string, fileIndex string) *GHHT {
+	i, err := strconv.Atoi(fileIndex)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 	mainConf := &GHHT{
-		DbPath: db_path,
+		DbPath:    dbPath,
+		FileIndex: i,
 	}
 	return mainConf
 }

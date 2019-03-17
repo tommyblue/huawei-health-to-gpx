@@ -32,25 +32,37 @@ func (db *DB) Close() {
 	db.db.Close()
 }
 
-func (db *DB) GetTracks() []string {
-	var acc []string
-	for _, id := range db.getFiles() {
-		acc = append(acc, db.getTrack(id))
+func (db *DB) GetTracks(fileIndex int) string {
+	// var acc []string
+	files := db.getFiles()
+	if fileIndex == 0 {
+		fmt.Println("\nSelect an ID from the list above and pass it as second argument\n")
+		return ""
 	}
-	return acc
+	for _, id := range files {
+		if id == fileIndex {
+			return db.getTrack(id)
+		}
+		// acc = append(acc, db.getTrack(id))
+	}
+	// return acc
+	log.Fatal("Cannot find the selected ID")
+	return ""
 }
 
 func (db *DB) getFiles() []int {
-	query := `SELECT file_index FROM apk_file_info WHERE file_path LIKE '%HiTrack%';`
+	query := `SELECT file_index, file_path FROM apk_file_info WHERE file_path LIKE '%HiTrack%';`
 
 	var acc []int
 
 	callback := func(scanFn scannerFn) {
 		var fileIndex int
-		err := scanFn(&fileIndex)
+		var filePath string
+		err := scanFn(&fileIndex, &filePath)
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("File %s (ID %d)\n", filePath, fileIndex)
 		acc = append(acc, fileIndex)
 	}
 

@@ -12,7 +12,8 @@ This app gets inspiration from [Huawei TCX Converter](https://github.com/aricoop
 - Open the Huawei Health app and open the exercise that you want to convert to view it's trajectory. This ensures that its HiTrack file is generated.
 - Download the [Huawei Backup App](https://play.google.com/store/apps/details?id=com.huawei.KoBackup&hl=en_GB) onto your phone.
 - Start a new **unencrypted** backup of the Huawei Health app data to your external storage (SD Card)
-- Navigate to `Huawei/Backup/***/backupFiles/***/` and copy `com.huawei.health.db` to your computer. If you can't find the `.db` file but you find the `com.huawei.health.tar` file, than you should use [Huawei TCX Converter](https://github.com/aricooperdavis/Huawei-TCX-Converter).
+- Connect the phone to the pc using a USB cable. When prompted on the phone, authorize the pc to access data.
+- Navigate to `/HuaweiBackup/backupFiles/<backup folder>/` and copy `com.huawei.health.db` to your computer. If you can't find the `.db` file but you find the `com.huawei.health.tar` file, than you should use [Huawei TCX Converter](https://github.com/aricooperdavis/Huawei-TCX-Converter).
 
 ## How to run the app
 

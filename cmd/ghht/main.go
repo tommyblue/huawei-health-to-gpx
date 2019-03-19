@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	ghht "github.com/tommyblue/go-huawei-health-tcx"
-	"github.com/tommyblue/go-huawei-health-tcx/db"
 )
 
 func main() {
@@ -19,11 +17,12 @@ func main() {
 	}
 	conf := ghht.Init(os.Args[1], i)
 
-	database := db.GetDb(conf)
+	database := ghht.GetDb(conf)
 	defer database.Close()
 
 	track := database.GetTracks(conf.FileIndex)
-	fmt.Println(track)
+	// fmt.Println(track)
+	ghht.FromDump(track)
 	// tracks := database.GetTracks(conf.FileIndex)
 
 	// for _, t := range tracks {

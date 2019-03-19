@@ -1,12 +1,10 @@
-package db
+package ghht
 
 import (
 	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
-
-	ghht "github.com/tommyblue/go-huawei-health-tcx"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -18,7 +16,7 @@ type DB struct {
 	db *sql.DB
 }
 
-func GetDb(conf *ghht.GHHT) *DB {
+func GetDb(conf *GHHT) *DB {
 	db, err := sql.Open("sqlite3", conf.DbPath)
 	if err != nil {
 		log.Fatal(err)

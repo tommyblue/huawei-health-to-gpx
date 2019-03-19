@@ -22,7 +22,7 @@ func main() {
 
 	track := database.GetTracks(conf.FileIndex)
 	// fmt.Println(track)
-	ghht.FromDump(track)
+	ghht.GPXFromDump(track)
 	// tracks := database.GetTracks(conf.FileIndex)
 
 	// for _, t := range tracks {

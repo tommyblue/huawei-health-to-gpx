@@ -20,9 +20,12 @@ func main() {
 	database := ghht.GetDb(conf)
 	defer database.Close()
 
-	track := database.GetTracks(conf.FileIndex)
-	// fmt.Println(track)
+	trackDump := database.GetTracks(conf.FileIndex)
+	// fmt.Println(trackDump)
+	track := ghht.ParseTrackDump(trackDump)
+
 	ghht.GPXFromDump(track)
+	// fmt.Printf("\n%v\n", gpxDoc)
 	// tracks := database.GetTracks(conf.FileIndex)
 
 	// for _, t := range tracks {

@@ -32,7 +32,7 @@ func (db *DB) Close() {
 
 func (db *DB) GetTracks(fileIndex int) string {
 	// var acc []string
-	files := db.getFiles()
+	files := db.getFiles(fileIndex)
 	if fileIndex == 0 {
 		fmt.Println("\nSelect an ID from the list above and pass it as second argument\n")
 		return ""
@@ -48,7 +48,7 @@ func (db *DB) GetTracks(fileIndex int) string {
 	return ""
 }
 
-func (db *DB) getFiles() []int {
+func (db *DB) getFiles(selectedFileIndex int) []int {
 	query := `SELECT file_index, file_path FROM apk_file_info WHERE file_path LIKE '%HiTrack%';`
 
 	var acc []int
@@ -60,7 +60,9 @@ func (db *DB) getFiles() []int {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("File %s (ID %d)\n", filePath, fileIndex)
+		if selectedFileIndex == 0 {
+			fmt.Printf("File %s (ID %d)\n", filePath, fileIndex)
+		}
 		acc = append(acc, fileIndex)
 	}
 

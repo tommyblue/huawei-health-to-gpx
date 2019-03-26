@@ -2,7 +2,8 @@ package ghht
 
 import (
 	"os"
-	"strings"
+	"sort"
+	"time"
 
 	"github.com/beevik/etree"
 )
@@ -16,16 +17,16 @@ type point struct {
 	cadence string
 }
 
-type gpxFile struct {
+type GpxFile struct {
 	document *etree.Document
 	points   []point
 }
 
-func (gpx *gpxFile) initXML() {
+func (gpx *GpxFile) initXML() {
 	gpx.document.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
 }
 
-func (gpx *gpxFile) instrument() *etree.Element {
+func (gpx *GpxFile) instrument() *etree.Element {
 	el := gpx.document.CreateElement("gpx")
 	el.CreateAttr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
 	el.CreateAttr("xmlns:gpxdata", "http://www.cluetrust.com/XML/GPXDATA/1/0")
@@ -37,7 +38,7 @@ func (gpx *gpxFile) instrument() *etree.Element {
 	return el
 }
 
-func (gpx *gpxFile) fillData(root *etree.Element) {
+func (gpx *GpxFile) fillData(root *etree.Element) {
 	author := root.CreateElement("author")
 	author.CreateText("GHHT")
 
@@ -51,7 +52,7 @@ func (gpx *gpxFile) fillData(root *etree.Element) {
 	gpx.fillTrack(trk)
 }
 
-func (gpx *gpxFile) fillTrack(root *etree.Element) {
+func (gpx *GpxFile) fillTrack(root *etree.Element) {
 	name := root.CreateElement("name")
 	name.CreateText("GHHT")
 
@@ -59,17 +60,20 @@ func (gpx *gpxFile) fillTrack(root *etree.Element) {
 	gpx.fillSegment(trkseg)
 }
 
-func (gpx *gpxFile) fillSegment(root *etree.Element) {
-	name := root.CreateElement("name")
-	name.CreateText("GHHT")
+func (gpx *GpxFile) fillSegment(root *etree.Element) {
+	// name := root.CreateElement("name")
+	// name.CreateText("GHHT")
 
-	trkseg := root.CreateElement("trkseg")
+	// trkseg := root.CreateElement("trkseg")
 	for _, p := range gpx.points {
-		gpx.fillPoint(trkseg, p)
+		gpx.fillPoint(root, p)
 	}
 }
 
-func (gpx *gpxFile) fillPoint(root *etree.Element, p point) {
+var previousHr = "0.0"
+var previousCadence = "0"
+
+func (gpx *GpxFile) fillPoint(root *etree.Element, p point) {
 	trkpt := root.CreateElement("trkpt")
 	trkpt.CreateAttr("lat", p.lat)
 	trkpt.CreateAttr("lon", p.lon)
@@ -82,19 +86,24 @@ func (gpx *gpxFile) fillPoint(root *etree.Element, p point) {
 
 	extensions := trkpt.CreateElement("extensions")
 
+	if p.hr == "0.0" || p.hr == "" {
+		p.hr = previousHr
+	}
+	previousHr = p.hr
 	hr := extensions.CreateElement("gpxdata:hr")
-	hr.CreateText(p.hr)
+	hr.CreateText(previousHr)
 
+	if p.cadence == "" {
+		p.cadence = previousCadence
+	}
+	previousCadence = p.cadence
 	cadence := extensions.CreateElement("gpxdata:cadence")
-	cadence.CreateText(p.cadence)
+	cadence.CreateText(previousCadence)
 }
 
-func GPXFromDump(dump string) {
-	gpx := &gpxFile{}
-	// Fake data
-	// gpx.points = []point{
-	// 	{"asd", "das", "fsfd", "asdas", "werw", "asdas"},
-	// }
+func GPXFromDump(dump *HuaweiTrack) *GpxFile {
+	gpx := &GpxFile{}
+	gpx.points = populatePoints(dump)
 	gpx.document = etree.NewDocument()
 	gpx.initXML()
 	root := gpx.instrument()
@@ -102,49 +111,71 @@ func GPXFromDump(dump string) {
 	gpx.document.Indent(2)
 	gpx.document.WriteTo(os.Stdout)
 
-	// r := map[string][]map[string]string{}
-	// scanner := bufio.NewScanner(strings.NewReader(dump))
-	// for scanner.Scan() {
-	// 	tp, m := parseLine(scanner.Text())
-	// 	_, ok := r[tp]
-	// 	if ok {
-	// 		r[tp] = append(r[tp], m)
-	// 	} else {
-	// 		r[tp] = []map[string]string{m}
-	// 	}
-	// }
-
-	// keys := make([]string, len(r))
-	// i := 0
-	// for k := range r {
-	// 	keys[i] = k
-	// 	i++
-	// }
-	// fmt.Println(keys)
-	// /* [
-	// 	s-r (k, v sempre 0) cadence
-	// 	rs (k, v)
-	// 	lbs (alt, t, lon, lat, k) location
-	// 	p-m (k, v)
-	// 	b-p-m (k, v)
-	// 	h-r (k, v) heart-rate
-	// ] */
-	// fmt.Println(r["h-r"])
+	return gpx
 }
 
-func parseLine(line string) (string, map[string]string) {
-	m := map[string]string{}
-	var tp string
-	for _, s := range strings.Split(line, ";") {
-		if s != "" {
-			r := strings.Split(s, "=")
-			if r[0] == "tp" {
-				tp = r[1]
-			} else {
-				m[r[0]] = r[1]
+func populatePoints(dump *HuaweiTrack) []point {
+	var pts []point
+	for _, timestamp := range getSortedKeys(dump) {
+		timedLine := (*dump)[timestamp]
+		var pt point
+		pt.time = getTimeStr(timestamp)
+		for k, v := range timedLine {
+			if k == "lbs" {
+				pt.lat = v["lat"]
+				pt.lon = v["lon"]
+				pt.elev = v["alt"]
+			} else if k == "h-r" {
+				pt.hr = v["v"]
 			}
+		}
+		if isValidPoint(pt) {
+			pts = append(pts, pt)
 		}
 	}
 
-	return tp, m
+	return pts
+}
+
+func isValidPoint(pt point) bool {
+	// Clear data:
+	/*
+			try:
+		        for line in data['hr']:
+		            # Heart-rate is too low/high (type is xsd:unsignedbyte)
+		            if line[5] < 1 or line[5] > 254:
+		                data['hr'].remove(line)
+
+		        for line in data['cad']:
+		            # Cadence is too low/high (type is xsd:unsignedbyte)
+		            if line[6] < 0 or line[6] > 254:
+		                data['cad'].remove(line)
+
+		        for line in data['alti']:
+		            # Altitude is too low/high (dead sea/everest)
+		            if line[4] < 1000 or line[4] > 10000:
+		                data['alti'].remove(line)
+	*/
+	if pt.lat == "90.0" || pt.lat == "" || pt.lon == "-80.0" || pt.lon == "" {
+		return false
+	}
+	// hr, err := strconv.Atoi(pt.hr)
+	// if err != nil || hr < 0 || hr > 254 {
+	// 	return false
+	// }
+	return true
+}
+
+func getTimeStr(timestamp int) string {
+	ts := time.Unix(int64(timestamp), 0)
+	return ts.Format(time.RFC3339)
+}
+
+func getSortedKeys(dump *HuaweiTrack) []int {
+	keys := []int{}
+	for k := range *dump {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	return keys
 }

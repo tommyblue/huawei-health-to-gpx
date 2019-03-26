@@ -1,4 +1,4 @@
-package ghht
+package hitrack2gpx
 
 import (
 	"os"
@@ -22,6 +22,19 @@ type GpxFile struct {
 	points   []point
 }
 
+func GPXFromDump(dump *HuaweiTrack) *GpxFile {
+	gpx := &GpxFile{}
+	gpx.points = populatePoints(dump)
+	gpx.document = etree.NewDocument()
+	gpx.initXML()
+	root := gpx.instrument()
+	gpx.fillData(root)
+	gpx.document.Indent(2)
+	gpx.document.WriteTo(os.Stdout)
+
+	return gpx
+}
+
 func (gpx *GpxFile) initXML() {
 	gpx.document.CreateProcInst("xml", `version="1.0" encoding="UTF-8"`)
 }
@@ -33,20 +46,20 @@ func (gpx *GpxFile) instrument() *etree.Element {
 	el.CreateAttr("xmlns", "http://www.topografix.com/GPX/1/0")
 	el.CreateAttr("xsi:schemaLocation", "http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd http://www.cluetrust.com/XML/GPXDATA/1/0 http://www.cluetrust.com/Schemas/gpxdata10.xsd")
 	el.CreateAttr("version", "1.0")
-	el.CreateAttr("creator", "GHHT")
+	el.CreateAttr("creator", "HT2G")
 
 	return el
 }
 
 func (gpx *GpxFile) fillData(root *etree.Element) {
 	author := root.CreateElement("author")
-	author.CreateText("GHHT")
+	author.CreateText("HT2G")
 
 	url := root.CreateElement("url")
-	url.CreateText("GHHT")
+	url.CreateText("HT2G")
 
 	time := root.CreateElement("time")
-	time.CreateText("GHHT")
+	time.CreateText("HT2G")
 
 	trk := root.CreateElement("trk")
 	gpx.fillTrack(trk)
@@ -54,17 +67,13 @@ func (gpx *GpxFile) fillData(root *etree.Element) {
 
 func (gpx *GpxFile) fillTrack(root *etree.Element) {
 	name := root.CreateElement("name")
-	name.CreateText("GHHT")
+	name.CreateText("HT2G")
 
 	trkseg := root.CreateElement("trkseg")
 	gpx.fillSegment(trkseg)
 }
 
 func (gpx *GpxFile) fillSegment(root *etree.Element) {
-	// name := root.CreateElement("name")
-	// name.CreateText("GHHT")
-
-	// trkseg := root.CreateElement("trkseg")
 	for _, p := range gpx.points {
 		gpx.fillPoint(root, p)
 	}
@@ -99,19 +108,6 @@ func (gpx *GpxFile) fillPoint(root *etree.Element, p point) {
 	previousCadence = p.cadence
 	cadence := extensions.CreateElement("gpxdata:cadence")
 	cadence.CreateText(previousCadence)
-}
-
-func GPXFromDump(dump *HuaweiTrack) *GpxFile {
-	gpx := &GpxFile{}
-	gpx.points = populatePoints(dump)
-	gpx.document = etree.NewDocument()
-	gpx.initXML()
-	root := gpx.instrument()
-	gpx.fillData(root)
-	gpx.document.Indent(2)
-	gpx.document.WriteTo(os.Stdout)
-
-	return gpx
 }
 
 func populatePoints(dump *HuaweiTrack) []point {

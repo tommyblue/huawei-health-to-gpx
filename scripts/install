@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -eu
+
+cd "$(dirname "${0}")/.."
+
+cd cmd/hitrack2gpx
+go install

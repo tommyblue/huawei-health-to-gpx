@@ -1,4 +1,4 @@
-package ghht
+package hitrack2gpx
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ type DB struct {
 	db *sql.DB
 }
 
-func GetDb(conf *GHHT) *DB {
+func GetDb(conf *HT2G) *DB {
 	db, err := sql.Open("sqlite3", conf.DbPath)
 	if err != nil {
 		log.Fatal(err)

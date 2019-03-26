@@ -1,4 +1,4 @@
-package ghht
+package hitrack2gpx
 
 import (
 	"bufio"

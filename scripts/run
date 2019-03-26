@@ -8,4 +8,4 @@ if [ $# -lt 1 ]; then
     echo -e "Missing db path argument"
     exit 1
 fi
-go run cmd/ghht/main.go "$@"
+go run cmd/hitrack2gpx/main.go "$@"

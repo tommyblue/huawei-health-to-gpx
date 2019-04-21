@@ -2,12 +2,12 @@
 
 # Huawei Health activities to GPX
 
-Golang app that generates GPX files from a Huawei HiTrack dump.
+Golang app that generates GPX files from a Huawei HiTrack backup.
 
-Hitrack data is what Huawei wearables generate after an activity ([Huawei Band 3 PRO](https://consumer.huawei.com/en/wearables/band3-pro/) is an example).
+HiTrack data is what Huawei wearables generate after an activity ([Huawei Band 3 PRO](https://consumer.huawei.com/en/wearables/band3-pro/) is an example).
 
-This app gets as input the HiTrack data from a Huawei Health app backup (as SQLite database).
-The outputted `.GPX` files will contain timestamped GPS, altitude, heart-rate, and cadence data where available.
+This app gets as input the HiTrack data from a Huawei Health app backup (as SQLite database) and outputs
+GPX files with support for timestamped GPS, altitude, heart-rate, and cadence data where available.
 
 This app gets inspiration from [Huawei TCX Converter](https://github.com/aricooperdavis/Huawei-TCX-Converter) which should be used if your backup has a different format (see below).
 
@@ -19,6 +19,14 @@ This app gets inspiration from [Huawei TCX Converter](https://github.com/aricoop
 - Connect the phone to the pc using a USB cable. When prompted on the phone, authorize the pc to access data.
 - If you can see the phone as an external memory (like on Linux) navigate to `/HuaweiBackup/backupFiles/<backup folder>/` and copy `com.huawei.health.db` to your computer. If you can't find the `.db` file but you find the `com.huawei.health.tar` file, than you should use [Huawei TCX Converter](https://github.com/aricooperdavis/Huawei-TCX-Converter).
 - If you're on a Mac you need to install the [HiSuite app](https://consumer.huawei.com/en/support/hisuite/) and use it to access the SD card on the phone. Then follow the same instructions as the point above.
+
+### Note
+
+For some reason if your wearable loses the GPS signal at the end of the record, the outputted dump doesn't
+contain GPS data, although the Health app can still show the track. This happen at least on the Band 3 Pro.
+
+The fact that the Health app shows the GPS track let me suspect data is still somewhere, but I didn't
+find a way to get it :/
 
 ## How to build and install
 
